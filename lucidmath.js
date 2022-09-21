@@ -5,12 +5,10 @@
     return {text: text, index: index, token: token, type: type};
   };
 
-
   //General helper.
   var peek = function (arr) {
     return arr[arr.length-1];
   };
-
 
   //Predefined functions and their arity.
   var func_table = {
@@ -58,6 +56,32 @@
     'ceil' : [1, function(s){s.push(Math.ceil(s.pop()));}],
     'if' : [3, function(s){var x = s.pop(), y = s.pop(), z = s.pop(); s.push(z ? y : x);}]
 
+  };
+
+  //Associativity and store operator precedence (true for left associative).
+  //All prefix operators are believed to have maximum precedence and to have right associative.
+  var pred_table = {
+    '||': [1, true],
+
+    '&&': [2, true],
+
+    '==': [3, true],
+    '!=': [3, true],
+    '<>': [3, true],
+
+    '<' : [4, true],
+    '>' : [4, true],
+    '<=': [4, true],
+    '>=': [4, true],
+
+    '+' : [5, true],
+    '-' : [5, true],
+
+    '*' : [6, true],
+    '%' : [6, true],
+    '/' : [6, true],
+
+    '^' : [7, false]
   };
 
   var tokenize = function (text, funcs, undef) {
