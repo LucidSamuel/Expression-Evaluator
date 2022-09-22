@@ -162,6 +162,95 @@
     return ret;
   };
 
+   //Takes a tokenized infix array and provides a postfix expression.
+   var postfix = function (infix, funcs) {
+
+    var stack = [];
+    var output = [];
+
+    var transfer = function () {
+      var t = stack.pop();
+      if (typeof t === 'object') {
+        output.push(t[0]);
+      } else {
+        output.push(t);
+      }
+    };
+
+    for (var i = 0; i < infix.length; ++i) {
+      var type = infix[i][0];
+      var tok = infix[i][1];
+
+      if (type === 'number') {
+        output.push(parseFloat(tok));
+
+      } else if (type === 'infix' || type === 'prefix') {
+        var pred = (type === 'prefix' ? 8 : pred_table[tok][0]);
+        var la = (type === 'prefix' ? 0 : pred_table[tok][1]);
+
+        var func = funcs[tok] || func_table[tok];
+
+        if (typeof func !== 'object') {
+          return lucidmath_error('', 0, tok, 'undefined');
+        }
+        while (typeof peek(stack) === 'object' && (la ? pred <= peek(stack)[1] : pred < peek(stack)[1])) {
+          output.push(stack.pop()[0]);
+        }
+        stack.push([func, pred]);
+
+      } else if (type === 'paren' && tok === '(') {
+        stack.push(tok);
+
+      } else if (type === 'paren' && tok === ')') {
+        while(stack.length && peek(stack) !== '(') {
+          transfer();
+        }
+        if (!stack.length) {
+          return lucidmath_error('', 0, '', 'paren');
+        }
+        stack.pop();
+
+      } else if (type === 'sep') {
+        while(stack.length && peek(stack) !== '(') {
+          transfer();
+        }
+        if (!stack.length) {
+          return lucidmath_error('', 0, '', 'sep');
+        }
+
+      } else {
+        return lucidmath_error('', 0, '', 'unspecified');
+      }
+    }
+
+    while (stack.length) {
+      transfer();
+    }
+
+
+    //Now check arity of everything.
+    var depth = 0;
+    for (var j = 0; j < output.length; ++j) {
+      var t = output[j];
+      if (typeof t === 'number') {
+        depth++;
+      } else if (typeof t === 'object') {
+        var arity = t[0];
+        output[j] = t[1];
+        depth -= arity;
+        depth++;
+      }
+    }
+
+    if (depth !== 1) {
+      return lucidmath_error('', 0, '', 'arity');
+    }
+
+
+    return output;
+  };
+
+
   //Compile text expression and return function to execute it.
   //funcs is an array of [arity, function] arrays.
   exports.compile = function (text, funcs, undef) {
