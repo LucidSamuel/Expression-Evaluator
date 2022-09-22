@@ -227,21 +227,6 @@
       transfer();
     }
 
-
-    //Now check arity of everything.
-    var depth = 0;
-    for (var j = 0; j < output.length; ++j) {
-      var t = output[j];
-      if (typeof t === 'number') {
-        depth++;
-      } else if (typeof t === 'object') {
-        var arity = t[0];
-        output[j] = t[1];
-        depth -= arity;
-        depth++;
-      }
-    }
-
     if (depth !== 1) {
       return lucidmath_error('', 0, '', 'arity');
     }
